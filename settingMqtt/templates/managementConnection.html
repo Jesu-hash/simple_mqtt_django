@@ -1,0 +1,87 @@
+{% extends "./template.html" %}
+
+{% block title %} Gestión de conexion {% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-dismissible alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong class="text-dark">{{ message }}</strong>
+        </div>
+        {% endfor %}
+        {% endif %}
+        <h2>Gestión de conexion</h2>
+        <div class="card">
+            <div class="card-body">
+                <form action="/registerConnection/" method="POST">{% csrf_token %}
+                    <div class="form-group">
+                        <input type="text" id="txtClient_id" name="txtClient_id" class="form-control" placeholder="Id-cliente"
+                            minlength="3" maxlength="3" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="txtBroker_ip" name="txtBroker_ip" class="form-control" placeholder="Broker"
+                            value="181.47.10.131" maxlength="30" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="numPort" name="numPort" class="form-control" min="1" max="20000"
+                            value="1883" required>
+                    </div>
+                    <div class="form-group">
+                      <input type="text" id="txtTopic" name="txtTopic" class="form-control" placeholder="Topic"
+                          value="sensores/nodo_10" maxlength="60" required>
+                  </div>
+                   <div class="form-group">
+                    <input type="text" id="txtUsername" name="txtUsername" class="form-control" placeholder="Usuario"
+                        value="emqx" maxlength="30" required>
+                    </div>
+                    <div class="form-group">
+                    <input type="text" id="txtPassword" name="txtPassword" class="form-control" placeholder="Password"
+                        value="public" maxlength="30" required>
+                    </div>
+                    <div class="form-group">
+                    <input type="text" id="txtMessage" name="txtMessage" class="form-control" placeholder="Mensaje"
+                        maxlength="60" readonly>
+                    </div>
+                   
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success btn-block text-white">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg-8 col-xl-8">
+        <h1>Listado de conexiones MQTT</h1>
+        <div class="table-responsive py-2">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Topic</th>
+                        <th>Broker</th>
+                        <th>Puerto</th>
+                        <th colspan="2">Opciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in connections %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{c.topic}}</td>
+                        <td>{{c.broker_ip}}</td>
+                        <td>{{c.port}}</td>
+                        <td><a href="{% url 'edition' c.client_id %}" class="btn btn-info">Editar</a></td>
+                        <td><a href="{% url 'delete' c.client_id %}" class="btn btn-danger btnEliminacion">Eliminar</a></td>
+                        <td><a href="{% url 'connect' %}" class="btn btn-success">Conectar</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+  
