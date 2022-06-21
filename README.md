@@ -11,6 +11,9 @@ Para poder manejar conexiones es necesario estar registrado y logeado.
 ## Iniciar aplicación
 
 cd /myenv
+
 source bin/activate
+
 python manage.py migrate
+
 mython manage.py runserver
