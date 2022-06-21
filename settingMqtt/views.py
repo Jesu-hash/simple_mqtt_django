@@ -11,6 +11,7 @@ def mqttSetting(request):
     messages.success(request, '¡Listado conexiones!')
     return render(request,"managementConnection.html", {"connections":mqtt_connection_data})
 
+
 @login_required
 def mqttRegister(request):
     client_id = request.POST['txtClient_id']
