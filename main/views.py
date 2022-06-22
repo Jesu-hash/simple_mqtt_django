@@ -1,3 +1,5 @@
+from audioop import reverse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UserRegisterForm
 #from django.contrib.auth.forms import UserChangeForm
@@ -16,8 +18,9 @@ def register(request):
 		if form.is_valid():
 			form.save()
 			username = form.cleaned_data['username']
-			messages.success(request, f'Usuario {username} creado')
-			return redirect('setting')
+			messages.success(request, f'Usuario {username} creado')		
+			return redirect('login')
+
 	else:
 		form = UserRegisterForm()
 

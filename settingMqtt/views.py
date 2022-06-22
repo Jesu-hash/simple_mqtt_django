@@ -8,14 +8,11 @@ from django.contrib.auth.models import User
 
 @login_required
 def mqttSetting(request):
-    # mqtt_connection_data = SettingMqtt.objects.all()
-    # print(mqtt_connection_data)
+
     mqtt_connection_data = SettingMqtt.objects.filter(user_id=request.user.id)
-    print(mqtt_connection_data)
 
     messages.success(request, '¡Listado conexiones!')
     return render(request,"managementConnection.html", {"connections":mqtt_connection_data})
-
 
 @login_required
 def mqttRegister(request, user):
