@@ -1,0 +1,17 @@
+{% extends 'template.html' %}
+
+{% block body %}
+
+  {% if request.user.is_authenticated %}
+    <div class="alert alert-dark" role="alert">
+      <h1>Ir a la gestión de conexión MQTT</h1> <a href="{% url 'setting' %}" class="alert-link">MQTT</a>
+    </div>
+  {% else %}
+    <div class="alert alert-dark" role="alert">
+      <h1>App gestión de conexiones MQTT para IOT</h1> <a href="{% url 'login' %}" class="alert-link">Login</a>. Click para loguearse.
+    </div>
+  {% endif %}
+
+  <img src="../static/images/mqtt.webp" class="img-thumbnail" alt="MQTT" />
+      
+{% endblock %}
