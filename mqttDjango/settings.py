@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "bootstrap5",
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +129,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'setting'
 LOGIN_URL = 'welcome'
+
+ASGI_APPLICATION = "mqttDjango.asgi.application"
+STREAM_SOCKET_GROUP_NAME = 'system_detail' # you can define name according to your requirements
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            #"hosts": [("redis", 6379)],
+            "hosts": [("127.0.0.1", 6379)]
+        },
+    },
+}

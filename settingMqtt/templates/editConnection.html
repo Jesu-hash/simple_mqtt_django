@@ -8,7 +8,7 @@
         <h2>Edición de Curso</h2>
         <div class="card">
             <div class="card-body">
-                <form action="/editConnection/" method="POST">{% csrf_token %}
+                <form action="{% url 'edition' connection.id %}" method="POST">{% csrf_token %}
                     <div class="form-group">
                         <input type="text" id="txtClient_id" name="txtClient_id" value="{{connection.client_id}}" class="form-control" placeholder="Id-cliente"
                             minlength="3" maxlength="3" readonly required>

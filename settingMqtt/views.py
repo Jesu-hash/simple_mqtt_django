@@ -42,9 +42,9 @@ def createConnection(request, user):
         messages.ERROR(request, '¡No conozco ese método para esta request!')
 
 @login_required
-def deleteConnection(request, client_id):
+def deleteConnection(request, pk):
     if request.method == "GET":
-        connection = SettingMqtt.objects.get(client_id=client_id)
+        connection = SettingMqtt.objects.get(id=pk)
         if connection:
             connection.delete()
             messages.success(request, '¡Conexion eliminada!')
@@ -53,7 +53,7 @@ def deleteConnection(request, client_id):
         messages.ERROR(request, '¡No conozco ese método para esta request!')
 
 @login_required
-def editConnection(request, client=''):
+def editConnection(request, pk=''):
     if request.method == "POST":
         client_id = request.POST['txtClient_id']
         broker_ip = request.POST['txtBroker_ip']
@@ -63,7 +63,7 @@ def editConnection(request, client=''):
         password = request.POST['txtPassword']
         message = request.POST['txtMessage']
 
-        connection = SettingMqtt.objects.get(client_id=client_id)
+        connection = SettingMqtt.objects.get(id=pk)
 
         connection.client_id = client_id
         connection.broker_ip = broker_ip
@@ -78,8 +78,7 @@ def editConnection(request, client=''):
         return redirect('setting')
 
     elif request.method == "GET":
-        print(client)
-        connection = SettingMqtt.objects.get(client_id=client)
+        connection = SettingMqtt.objects.get(id=pk)
         return render(request, "editConnection.html", {"connection":connection})
     else:
         messages.ERROR(request, '¡No conozco ese método para esta request!')

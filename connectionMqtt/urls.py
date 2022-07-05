@@ -1,6 +1,7 @@
-from django.urls import path
-from . import views
+from django.urls import path, re_path
+from connectionMqtt.views import *
 
 urlpatterns = [
-    #path('menuConnection/<client_id>','', name="connect"),
- ]
+    path('menuConnection/<pk>/',connect, name="connect"),
+]
+

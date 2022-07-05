@@ -3,9 +3,9 @@ import random
 from django.contrib.auth.models import User
 
 class SettingMqtt(models.Model):
-    client_id = models.CharField(primary_key=True, max_length=3)
+    client_id = models.CharField(max_length=3)
+    #client_id = models.CharField(primary_key=True, max_length=3)
     user = models.ForeignKey(User, on_delete=models.CASCADE,null=True, blank=True)
-    #client_id = models.CharField(max_length=4)
     broker_ip = models.CharField(max_length=30)
     port = models.IntegerField()
     topic = models.CharField(max_length=60)

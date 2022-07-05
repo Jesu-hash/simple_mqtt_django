@@ -73,9 +73,9 @@
                         <td>{{c.topic}}</td>
                         <td>{{c.broker_ip}}</td>
                         <td>{{c.port}}</td>
-                        <td><a href="{% url 'edition' c.client_id %}" class="btn btn-info">Editar</a></td>
-                        <td><a href="{% url 'delete' c.client_id %}" class="btn btn-danger btnEliminacion">Eliminar</a></td>
-                        <td><a href="{% url 'connect' %}" class="btn btn-success">Conectar</a></td>
+                        <td><a href="{% url 'edition' c.id %}" class="btn btn-info">Editar</a></td>
+                        <td><a href="{% url 'delete' c.id %}" class="btn btn-danger btnEliminacion">Eliminar</a></td>
+                        <td><a href="{% url 'connect' c.id %}" class="btn btn-success">Conectar</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
