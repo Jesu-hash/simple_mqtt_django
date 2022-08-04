@@ -1,0 +1,218 @@
+{% extends "./template.html" %}
+
+{% block title %} Conexión {% endblock %}
+
+
+    <head>
+
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/charts_mqtt.css' %}">
+
+    </head>
+    
+{% block body %}
+
+    <div class="row">
+        <!-- CONTAINER FOR CHART -->
+        <div class="col-12" id="chart_div"></div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="{% static 'js/charts_mqtt.js' %}"></script>
+
+    <script>
+    var arrayOfIds = []
+
+    const systemSocket = new WebSocket(`ws://${window.location.host}/ws/system/`);
+    
+    systemSocket.onopen = function (e) {
+        systemSocket.send(JSON.stringify({"message": 'Sending message to server'}));
+    };
+    systemSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+
+        var to_show = "";
+        var pointsToDraw = []
+        var keysToDraw = []
+
+        if (data['Id'] && data['timestamp']) {
+             //variable is undefined or null
+           
+            pointsToDraw.push(indexDataReceived)
+            for (const [key, value] of Object.entries(data)) {
+                //console.log(key, value);
+                if(key !='Id' && key != 'timestamp' ){
+
+                    to_show += '<b>' + key + '</b> : ' 
+                        +  value + "<br>";
+
+                        pointsToDraw.push(value);
+                        keysToDraw.push(key);
+                }
+            }
+
+            if(! (arrayOfIds.includes(data['Id']) ) ) {
+                arrayOfIds.push(data['Id']);
+                addRow('table', data['Id']);
+
+            };
+             //Draw chart only selected row
+             //console.log("idSelectedRow------ ", idSelectedRow)
+            if(idSelectedRow == data['Id']){
+
+            if(changedSelectedRow){
+                changedSelectedRow = false;
+                configColumnsChart(keysToDraw);
+
+                }
+               updateChart(pointsToDraw);
+               indexDataReceived = indexDataReceived + 1;
+           }
+            var table = document.getElementById("table");
+            var length =table.rows.length-1;
+
+            for (var i =0; i <= length; i++) {
+
+                if(table.rows[i].cells[1].innerHTML  == data['Id'])
+                {
+
+                    //console.log(to_show);
+                    table.rows[i].cells[2].innerHTML  = to_show;
+                    table.rows[i].cells[3].innerHTML  = data['timestamp'];
+                }
+
+            }
+
+        
+        };
+    };
+    systemSocket.onclose = function (e) {
+        console.error('Chat socket closed');
+    };
+    
+    </script>
+    </div>
+
+        <div class="container-fluid">
+            <style>
+                .selected {
+                    background: blue
+                }
+            </style>
+        <!-- <table id="table" class="table-secondary">
+            <thead>
+            <tr>
+                <th class="col-sm-1" scope="col">#</th>
+                <th class="col-sm-1" scope="col">Id</th>
+                <th class="col-sm-6" scope="col">Data</th>
+                <th class="col-sm-4" scope="col">Timestamp</th>
+    
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table> -->
+
+        <table class="table" id="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Id</th>
+                <th scope="col">Data</th>
+                <th scope="col">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- <tr>
+                <th scope="row">1</th>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <th scope="row">2</th>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr> -->
+
+            </tbody>
+          </table>
+
+</div>   
+<br>
+    <div>
+        <form data-post-url="{% url 'publish' %}" method="post" id="form_publish">
+        {% for client in clients %}
+            {% if client.client.client.connected_flag == True %}
+
+            <div class="container">
+                <div class="row">
+                  <div class="col">
+                    <p>BROKER: {{client.broker}}</p>
+                  </div>
+                  <div class="col">
+                    <p>TOPIK SUBSCIBE: {{client.sub_topic}}</p>
+                  </div>
+                  <div class="col">
+                    <div class="alert alert-primary" role="alert">
+                        Connected!
+                    </div>
+                    
+                  </div>
+
+                  <div class="col">
+                    
+
+                    <!-- <form data-post-url="{% url 'publish' %}" method="post" id="form_publish"> -->
+                        {% csrf_token %}
+                        <script>
+                            var csrftoken = '{{ csrf_token }}';
+  
+                        </script>
+                        <!-- <input id="id_value_{{ client.client_id }}" type="hidden" value="{{client.client_id}}"> -->
+                        <label for="comment">Publish:</label>
+                        <textarea class="form-control" rows="5" id="text_publish_{{client.client_id}}" name="my_publish_text"></textarea>
+                        <div class="form-group">
+                            <!-- <button type="submit" id="button" class="btn btn-success btn-block text-white" >Publish</button> -->
+                            <button onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
+                                class="btn btn-xs btn-primary">Publish
+                            </button>
+                        </div>
+                    <!-- </form> -->
+                  </div>
+
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </form>
+        
+        {% csrf_token %}
+        <script>
+            var csrftoken = '{{ csrf_token }}';       
+        </script>
+        <button type="button" class="btn btn-warning" id="btn_disconnect" data-url="{% url 'disconnect' %}">Disconnect all</button>
+
+        <a type="button" class="btn btn-success" id="btn_connect" href="{% url 'connect' %}">Connect</a>
+
+
+        <script src="{% static 'js/script_ajax.js' %}"></script>
+    <br>
+        <div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible alert-success">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <strong class="text-dark">{{ message }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+
+    </div>
+
+
+{% endblock %}
+  

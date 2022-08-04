@@ -3,9 +3,8 @@ from . import views
 #from connectionMqtt.views import connectConnection
 
 urlpatterns = [
-    path('managementConnection/',views.mqttSetting, name="setting"),
-    path('createConnection/<user>',views.createConnection, name="createconnection"),
-    path('editConnection/<pk>/',views.editConnection, name="edition"),
-    path('deleteConnection/<pk>/',views.deleteConnection, name="delete"),
-    #path('menuConnection/<pk>/',connectConnection, name="connect"), 
+    path('management/',views.mqttSetting, name="setting"),
+    path('create-connection/<user>',views.createConnection, name="createconnection"),
+    path('edit-connection/<pk>/',views.editConnection, name="edition"),
+    path('delete-connection/<pk>/',views.deleteConnection, name="delete"),
 ]
