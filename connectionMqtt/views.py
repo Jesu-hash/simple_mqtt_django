@@ -15,6 +15,8 @@ import sys
 import time
 from django.http import JsonResponse
 
+from django.conf import settings
+
 # class MqttClient(Thread):
 #     def __init__(self, broker, port, timeout, topics):
 #         super(MqttClient, self).__init__()
@@ -93,7 +95,7 @@ class MqttClient():
         self.total_messages = self.total_messages + 1
         #print(str(msg.payload) + "Total: {}".format(self.total_messages))
         # print("INGRESE A on_message")
-        # print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic, client {self.name}")
+        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic, client {self.name}")
         
         x = msg.payload.decode("utf-8")
         data = json.loads(x) # parse x:
@@ -130,21 +132,17 @@ class MqttClient():
 
 
 clients = []
-active_connections = False
+active_connections = 0
 @login_required
 def connect(request):
     if request.method == "GET":
 
-        global active_connections 
-        clients_list=request.GET.getlist('clients[]')
-        print("clients_list ", clients_list)
-
-        global clients
-        clients = create_connections(clients_list)
 
         no_threads=threading.active_count()
         print("Current threads =",no_threads)
         print("Creating  Connections ",len(clients)," clients")
+
+        global active_connections
 
         for i in range(len(clients)):
 
@@ -155,54 +153,70 @@ def connect(request):
             clients[i]["client"].client.connected_flag=False #create flag in class
 
             try:
-                clients[i]["client"].connect_to_broker()
-                active_connections = True
+                clients[i]["client"].connect_to_broker()              
             except:
-                messages.error(request, '¡Connection Fialed to broker!')
-                print("Connection Fialed to broker ",clients[i]["broker"])
+                broker = clients[i]["broker"]
+                messages.error(request, f"Connection Fialed to broker {broker}")
                 
                 continue
-                #return redirect('setting') 
 
             else:
-                messages.success(request, 'Conexion MQTT establecida!')     
-                print("Conexion MQTT establecida ",clients[i]["name"])
+                broker = clients[i]["broker"]
+                messages.success(request, f"Conexion MQTT establecida! {broker}")     
                 clients[i]["client"].client.connected_flag=True
+                active_connections += 1
+
+        settings.ACTIVE_CONNECTIONS = active_connections
 
         no_threads=threading.active_count()
         print("current threads =",no_threads)
 
-        return render(request,"menu_connection.html", {"clients":clients, "active_connections": active_connections})
+        return render(request,"menu_connection.html", {"clients":clients})
  
     else:
         messages.error(request, '¡No conozco ese método para esta request!')
 
-def create_connections(clients_ids):
+def create_connections(request):
     # clients_list=[
     # {"broker":"192.168.1.159","port":1883,"name":"blank","sub_topic":"test1","pub_topic":"test1"},
     # {"broker":"192.168.1.65","port":1883,"name":"blank","sub_topic":"test2","pub_topic":"test2"}
     # ]
-    clients_list = []
-    for i in range(len(clients_ids)):
-        id = clients_ids[i]
-        client = SettingMqtt.objects.get(client_id=id)
-
-        dictTemp = {}  
-
-        dictTemp['client_id'] = client.client_id
-        dictTemp['broker'] = client.broker_ip
-        dictTemp['sub_topic'] = client.topic
-        dictTemp['port'] = client.port
-        dictTemp['name'] = "client"+str(i)
-        dictTemp['pub_topic'] = "sensores/nodo_10/public"
-        dictTemp['user'] = ''
-        dictTemp['password'] = ''
-
-        clients_list.append(dictTemp)
-
+    global clients
+    if request.method == "POST":
+        clients = []
+        clients_ids=request.POST.getlist('clients[]')
+        print("clients_ids ", clients_ids)
     
-    print("clients: ", clients_list)
-    return clients_list   
+        # session = request.session.session_key
+        # if not request.session.session_key:
+        #     session = request.session.create()
+
+        # request.session['active_clients'] = 0
+        # request.session.modified = True
+
+        for i in range(len(clients_ids)):
+            id = clients_ids[i]
+            client = SettingMqtt.objects.get(client_id=id)
+
+            dictTemp = {}  
+
+            dictTemp['client_id'] = client.client_id
+            dictTemp['broker'] = client.broker_ip
+            dictTemp['sub_topic'] = client.topic
+            dictTemp['port'] = client.port
+            dictTemp['name'] = "client"+str(i)
+            dictTemp['pub_topic'] = "sensores/nodo_10/public"
+            dictTemp['user'] = ''
+            dictTemp['password'] = ''
+
+            clients.append(dictTemp)
+
+        
+        print("clients: ", clients)
+
+        return render(request,"menu_connection.html", {"clients":clients, "length": len(clients)})
+    else:
+         return render(request,"menu_connection.html", {"clients":clients, "length": len(clients)})
 
 def draw_point(data):
 
@@ -216,32 +230,33 @@ def draw_point(data):
 
 @login_required
 def disconnect(request):
-    print("DISCONNECT------- ")
-    if request.method == 'POST':
-        slug = request.POST.get('slug', None)
-        print("slug ", slug)
-        
+
+    if request.method == 'GET':
+
+        global active_connections
+
+        print("active_connections ",active_connections)
  
         for client in clients:
             #print("CLIENT ", client)
+            if (client["client"].client.connected_flag) == True:
+                active_connections = active_connections - 1 
+
             client['client'].client.disconnect()
             client['client'].client.loop_stop()
+            time.sleep(1)
+            
+        settings.ACTIVE_CONNECTIONS = active_connections
         #allow time for allthreads to stop before existing
-        time.sleep(2)
-
+        print("active_connections ",active_connections)
+        
         for client in clients:
             print("CLIENT ", client['client'].client.connected_flag)
 
         no_threads=threading.active_count()
         print("current threads =",no_threads)
 
-        return JsonResponse(
-                        {
-                            'content': {
-                                'message': 'CLIENTES DESCONECTADOS',
-                            }
-                        }
-                    )
+        return render(request,"menu_connection.html", {"clients":clients})
 
 @login_required
 def publish(request):

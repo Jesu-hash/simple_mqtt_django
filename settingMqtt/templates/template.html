@@ -55,13 +55,14 @@
                   {% if request.user.is_authenticated %}
                       <li><hr class="dropdown-divider"></li>
                       <li><a class="dropdown-item" href="{% url 'setting' %}">Mqtt menu</a></li>
+                      <li><a class="dropdown-item" href="{% url 'create_connections' %}">Mqtt connections</a></li>
                   {% endif %}
                 </ul>
               </li>
               <li class="nav-item">
-                {% if active_connections%}
-                  <a class="nav-link disabled">{{active_connections}}</a>
-                {% endif %}
+
+                  <a class="nav-link disabled">Clientes activos: {{ active_clients }}</a>
+     
               </li>
             </ul>
             <form class="d-flex" role="search">

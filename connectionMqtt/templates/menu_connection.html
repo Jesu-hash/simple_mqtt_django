@@ -12,6 +12,9 @@
     
 {% block body %}
 
+    {% if length == 0 %}
+    <h1> No hay clientes activos</h1>
+    {% else %}
     <div class="row">
         <!-- CONTAINER FOR CHART -->
         <div class="col-12" id="chart_div"></div>
@@ -98,53 +101,21 @@
                     background: blue
                 }
             </style>
-        <!-- <table id="table" class="table-secondary">
-            <thead>
-            <tr>
-                <th class="col-sm-1" scope="col">#</th>
-                <th class="col-sm-1" scope="col">Id</th>
-                <th class="col-sm-6" scope="col">Data</th>
-                <th class="col-sm-4" scope="col">Timestamp</th>
     
-            </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-        </table> -->
-
         <table class="table" id="table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Id</th>
-                <th scope="col">Data</th>
-                <th scope="col">Timestamp</th>
-              </tr>
-            </thead>
+           
             <tbody>
-              <!-- <tr>
-                <th scope="row">1</th>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th scope="row">2</th>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr> -->
-
+              
             </tbody>
           </table>
 
 </div>   
 <br>
     <div>
+        
         <form data-post-url="{% url 'publish' %}" method="post" id="form_publish">
+
         {% for client in clients %}
-            {% if client.client.client.connected_flag == True %}
 
             <div class="container">
                 <div class="row">
@@ -156,46 +127,49 @@
                   </div>
                   <div class="col">
                     <div class="alert alert-primary" role="alert">
-                        Connected!
+                        {% if client.client.client.connected_flag %}
+                            <p>Connected!</p>
+                        {% else %}
+                            <p>Disconnected!</p>
+                        {% endif %}
                     </div>
                     
                   </div>
 
                   <div class="col">
                     
-
                     <!-- <form data-post-url="{% url 'publish' %}" method="post" id="form_publish"> -->
                         {% csrf_token %}
                         <script>
-                            var csrftoken = '{{ csrf_token }}';
-  
+                            var csrftoken = '{{ csrf_token }}'; 
                         </script>
-                        <!-- <input id="id_value_{{ client.client_id }}" type="hidden" value="{{client.client_id}}"> -->
+
                         <label for="comment">Publish:</label>
                         <textarea class="form-control" rows="5" id="text_publish_{{client.client_id}}" name="my_publish_text"></textarea>
                         <div class="form-group">
-                            <!-- <button type="submit" id="button" class="btn btn-success btn-block text-white" >Publish</button> -->
+                           
+                            {% if client.client.client.connected_flag %}
                             <button onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
                                 class="btn btn-xs btn-primary">Publish
                             </button>
+                            {% else %}
+                            <button onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
+                                class="btn btn-xs btn-primary" disabled>Publish
+                            </button>
+                            {% endif %}
                         </div>
                     <!-- </form> -->
                   </div>
 
                 </div>
             </div>
-            {% endif %}
-        {% endfor %}
+
+        {% endfor %} 
     </form>
         
-        {% csrf_token %}
-        <script>
-            var csrftoken = '{{ csrf_token }}';       
-        </script>
-        <button type="button" class="btn btn-warning" id="btn_disconnect" data-url="{% url 'disconnect' %}">Disconnect all</button>
+        <a type="button" class="btn btn-warning" id="btn_disconnect" href="{% url 'disconnect' %}">Disconnect all</a>
 
         <a type="button" class="btn btn-success" id="btn_connect" href="{% url 'connect' %}">Connect</a>
-
 
         <script src="{% static 'js/script_ajax.js' %}"></script>
     <br>
@@ -213,6 +187,6 @@
 
     </div>
 
-
+    {% endif %}
 {% endblock %}
   

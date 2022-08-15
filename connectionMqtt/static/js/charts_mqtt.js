@@ -73,14 +73,35 @@ function updateChart(arrayToDraw) {
 
 function addRow(tableID ,id) {
     var table = document.getElementById(tableID);
+    //console.log("document.getElementById(tableID).tHead.innerHTML", document.getElementById(tableID).tHead.innerHTML)
+    var element= document.getElementById(tableID).tHead;
+    if (element == null){   
+    // Create an empty <thead> element and add it to the table:
+        var header = table.createTHead();
 
+        // Create an empty <tr> element and add it to the first position of <thead>:
+        var rowThead = header.insertRow(0);    
+    
+        // Insert a new cell (<td>) at the first position of the "new" <tr> element:
+        var cell1 = rowThead.insertCell(0);
+        var cell2 = rowThead.insertCell(1);
+        var cell3 = rowThead.insertCell(2);
+        var cell4 = rowThead.insertCell(3);
+    
+        // Add some bold text in the new cell:
+        cell1.innerHTML = "<b>#</b>";
+        cell2.innerHTML = "<b>Id</b>";
+        cell3.innerHTML = "<b>Data</b>";
+        cell4.innerHTML = "<b>Timestamp</b>";
+
+    }
     var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
     
     row.onmousedown = function(){ RowClick(this,false); }
 
     var cell1 = row.insertCell(0);
-    cell1.innerHTML = rowCount + 1;
+    cell1.innerHTML = rowCount;
 
     var cell2 = row.insertCell(1);
     cell2.innerHTML = id;
@@ -91,8 +112,7 @@ function addRow(tableID ,id) {
     var cell4 = row.insertCell(3);
     //cell4.innerHTML = timestamp;
 
-    //Update rows with event onclick
-    //select_row();
+
 
  
 }

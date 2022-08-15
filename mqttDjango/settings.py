@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-+=3arrp(wgz5)eu-2b!f=o+un=wd)@ra4g5*z6vwz%12ujq6(l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+# ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -66,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'connectionMqtt.context_processors.active_clients_to_context',
             ],
         },
     },
@@ -143,6 +145,9 @@ LOGIN_URL = 'welcome'
 ASGI_APPLICATION = "mqttDjango.asgi.application"
 STREAM_SOCKET_GROUP_NAME = 'system_detail' # you can define name according to your requirements
 
+#SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -152,3 +157,5 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+ACTIVE_CONNECTIONS = 0
