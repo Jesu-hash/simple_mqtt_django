@@ -159,3 +159,8 @@ CHANNEL_LAYERS = {
 }
 
 ACTIVE_CONNECTIONS = 0
+
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR : 'danger'
+}

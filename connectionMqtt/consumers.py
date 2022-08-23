@@ -36,7 +36,7 @@ class SystemConsumer(AsyncWebsocketConsumer):
                 'type': 'system_load',
                 'data': {
                     'Id': 0,
-                    'temp': 0,
+                    'data': 0,
                     'timestamp': 0
 
                 }

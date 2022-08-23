@@ -80,7 +80,7 @@ def deleteConnection(request, pk):
             messages.success(request, '¡Conexion eliminada!')
         return redirect('setting')
     else:
-        messages.ERROR(request, '¡No conozco ese método para esta request!')
+        messages.error(request, '¡No conozco ese método para esta request!')
 
 @login_required
 def editConnection(request, pk=''):
