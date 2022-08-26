@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings 
 
 class SettingMqtt(models.Model):
     client_id = models.CharField(max_length=3)
-    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     broker_ip = models.CharField(max_length=30)
     port = models.IntegerField()
     topic = models.CharField(max_length=60)

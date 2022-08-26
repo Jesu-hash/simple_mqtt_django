@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -140,7 +141,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'setting'
-LOGIN_URL = 'welcome'
+LOGIN_URL = 'home'
 
 ASGI_APPLICATION = "mqttDjango.asgi.application"
 STREAM_SOCKET_GROUP_NAME = 'system_detail' # you can define name according to your requirements
@@ -164,3 +165,18 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR : 'danger'
 }
+
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = '587'
+# EMAIL_HOST_USER = 'prieto.django@gmail.com'
+# EMAIL_HOST_PASSWORD = 'maximiliano022'
+# EMAIL_USE_TLS = True
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'prieto.django@gmail.com'
+EMAIL_HOST_PASSWORD = 'rambo'
+EMAIL_USE_TLS = True
+
+AUTH_USER_MODEL = 'accounts.Account'

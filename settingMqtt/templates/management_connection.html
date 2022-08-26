@@ -1,15 +1,15 @@
-{% extends "./template.html" %}
+{% extends "base.html" %}
 
 {% block title %} Gestión de conexion {% endblock %}
 
 {% block body %}
 <div class="row">
     <div class="col-sm-12 col-md-6 col-lg-4 col-xl-4">
-        {% include './alerts.html' %}
+        {% include 'includes/alerts.html' %}
         <h2>Gestión de conexion</h2>
         <div class="card">
             <div class="card-body">
-                <form action="{% url 'createconnection' user %}" method="POST">{% csrf_token %}
+                <form action="{% url 'createconnection' user.username %}" method="POST">{% csrf_token %}
                     <div class="form-group">
                         <input type="text" id="txtClient_id" name="txtClient_id" class="form-control" placeholder="Id-cliente"
                             minlength="3" maxlength="3" required>
@@ -46,10 +46,11 @@
             </div>
         </div>
     </div>
+    {% if connections %}
     <div class="col-sm-12 col-md-6 col-lg-8 col-xl-8">
         <h1>Lista de clientes</h1>
         <div class="table-responsive py-2">
-            <form action="{% url 'create_connections'%}" method='POST'>{% csrf_token %}
+            <form action="{% url 'create_connections'%}" method='POST'>{% csrf_token %}           
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -61,6 +62,7 @@
                     </tr>
                 </thead>
                 <tbody>
+                    
                     {% for c in connections %}
                     <tr>
                         <td>{{forloop.counter}}</td>
@@ -82,22 +84,30 @@
 
                     
                     {% endfor %}
+                
 
                 </tbody>
 
-            </table>
+            </table>            
             
+                {% if connections %}
                 {% if active_clients == 0 %}
                 <div class="d-grid gap-2">
 
                     <button class="btn btn-primary" type='submit'> Subscribirse! </button>
                 </div>
                 {% endif %}
+                {% endif %}
             
             
         </form>
         </div>
     </div>
+    {% else %}
+        <div class="col-sm-12 col-md-6 col-lg-8 col-xl-8">
+            <h1>No hay conexiones cargadas</h1>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
   

@@ -230,7 +230,7 @@ def draw_point(data):
 
 @login_required
 def disconnect(request):
-
+  
     if request.method == 'GET':
 
         global active_connections

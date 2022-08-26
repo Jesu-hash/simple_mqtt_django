@@ -1,6 +1,8 @@
 from ast import Not, SetComp
 from email import message
 from django.shortcuts import render, redirect
+
+from accounts.models import Account
 from .models import SettingMqtt
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -14,7 +16,6 @@ def mqttSetting(request):
 
     if request.method == "GET":
         mqtt_connection_data = SettingMqtt.objects.filter(user_id=request.user.id)
-
         return render(request,"management_connection.html", {"connections":mqtt_connection_data})
     else:
         messages.error(request, '¡No conozco ese método para esta request!')
@@ -31,7 +32,8 @@ def createConnection(request, user):
         password = request.POST['txtPassword']
         message = request.POST['txtMessage']
 
-        user = User.objects.get(username=user)
+        # user = User.objects.get(username=user)
+        user = Account.objects.get(username=user)
 
         SettingMqtt.autor = user.id
 

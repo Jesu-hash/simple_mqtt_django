@@ -1,4 +1,4 @@
-{% extends "./template.html" %}
+{% extends "base.html" %}
 
 {% block title %} Conexión {% endblock %}
 
@@ -172,7 +172,7 @@
 
         <script src="{% static 'js/script_ajax.js' %}"></script>
     <br>
-        {% include './settingMqtt/alerts.html' %}
+        {% include 'includes/alerts.html' %}
         
 
     </div>
