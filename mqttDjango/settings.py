@@ -152,6 +152,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
+        #"BACKEND": "channels.layers.InMemoryChannelLayer",
         "CONFIG": {
             #"hosts": [("redis", 6379)],
             "hosts": [("127.0.0.1", 6379)]
@@ -173,10 +174,10 @@ MESSAGE_TAGS = {
 # EMAIL_USE_TLS = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = ''
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = 'prieto.django@gmail.com'
+EMAIL_HOST_PASSWORD = 'lvlfgkueyvkuzulk'
 EMAIL_USE_TLS = True
 
 AUTH_USER_MODEL = 'accounts.Account'

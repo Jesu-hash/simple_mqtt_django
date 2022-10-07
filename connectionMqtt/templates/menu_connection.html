@@ -115,22 +115,34 @@
         <form data-post-url="{% url 'publish' %}" method="post" id="form_publish">
 
         {% for client in clients %}
-
             <div class="container">
                 <div class="row">
                   <div class="col">
                     <p>BROKER: {{client.broker}}</p>
                   </div>
-                  <div class="col">
+                    <div class="col">
                     <p>TOPIK SUBSCIBE: {{client.sub_topic}}</p>
                   </div>
                   <div class="col">
                     <div class="alert alert-primary" role="alert">
-                        {% if client.client.client.connected_flag %}
-                            <p>Connected!</p>
-                        {% else %}
-                            <p>Disconnected!</p>
-                        {% endif %}
+
+                        <script type='text/javascript'>
+
+                            if('{{ client.client}}')
+                            {
+                                var flag = JSON.parse('{{ client.client|safe }}');
+                                console.log("flag ", flag.connected_flag);
+    
+                                if(flag.connected_flag){
+                                    document.write("<p>Connected!</p>");
+                                }
+                                else{
+                                    document.write("<p>Disconnected!</p>");
+                                }
+                            }
+                            
+                        </script>
+
                     </div>
                     
                   </div>
@@ -146,16 +158,29 @@
                         <label for="comment">Publish:</label>
                         <textarea class="form-control" rows="5" id="text_publish_{{client.client_id}}" name="my_publish_text"></textarea>
                         <div class="form-group">
-                           
-                            {% if client.client.client.connected_flag %}
-                            <button onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
+
+                            <button id="btnPublish" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
                                 class="btn btn-xs btn-primary">Publish
                             </button>
-                            {% else %}
-                            <button onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
-                                class="btn btn-xs btn-primary" disabled>Publish
-                            </button>
-                            {% endif %}
+
+                            <script type='text/javascript'>
+
+                                if('{{ client.client}}')
+                                {
+                                    var flag = JSON.parse('{{ client.client|safe }}');
+
+                                    if(flag.connected_flag){
+                                        document.getElementById("btnPublish").disabled = true;                                     
+
+                                    }
+                                    else{
+                                        document.getElementById("btnPublish").disabled = false;
+
+                                    }
+                                }
+                                
+                            </script>
+              
                         </div>
                     <!-- </form> -->
                   </div>
@@ -166,10 +191,16 @@
         {% endfor %} 
     </form>
         
-        <a type="button" class="btn btn-warning" id="btn_disconnect" href="{% url 'disconnect' %}">Disconnect all</a>
-
-        <a type="button" class="btn btn-success" id="btn_connect" href="{% url 'connect' %}">Connect</a>
-
+    <form action="{% url 'disconnect' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-warning"> Disconnect all  </button>
+    </form>
+    
+    <form action="{% url 'connect' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success"> Connect  </button>
+    </form>
+    
         <script src="{% static 'js/script_ajax.js' %}"></script>
     <br>
         {% include 'includes/alerts.html' %}

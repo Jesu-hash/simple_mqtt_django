@@ -5,20 +5,32 @@ from django.conf import settings
 
 
 class SystemConsumer(AsyncWebsocketConsumer):
-    group_name = settings.STREAM_SOCKET_GROUP_NAME
+    #group_name = settings.STREAM_SOCKET_GROUP_NAME
+    # user = Account.objects.get(email__exact=email)
+    # group_name = "group_"+user
 
     async def connect(self):
         # Joining group
+
+        user_name = str(self.scope['session']['logged_user'])
+        user_name = user_name.split("@")[0]
+        group_name = user_name
+        
+
         await self.channel_layer.group_add(
-            self.group_name,
+            group_name,
             self.channel_name
         )
         await self.accept()
 
     async def disconnect(self, close_code):
         # Leave group
+        user_name = str(self.scope['session']['logged_user'])
+        user_name = user_name.split("@")[0]
+        group_name = user_name
+
         await self.channel_layer.group_discard(
-            self.group_name,
+            group_name,
             self.channel_name
         )
 
@@ -29,9 +41,13 @@ class SystemConsumer(AsyncWebsocketConsumer):
         print(message)
         # Print message that receive from Websocket
 
+        user_name = str(self.scope['session']['logged_user'])
+        user_name = user_name.split("@")[0]
+        group_name = user_name
+
         # Send data to group
         await self.channel_layer.group_send(
-            self.group_name,
+            group_name,
             {
                 'type': 'system_load',
                 'data': {

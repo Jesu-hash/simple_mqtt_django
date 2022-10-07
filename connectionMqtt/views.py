@@ -17,6 +17,11 @@ from django.http import JsonResponse
 
 from django.conf import settings
 
+import json
+import jsonpickle
+import pickle
+
+import ctypes
 # class MqttClient(Thread):
 #     def __init__(self, broker, port, timeout, topics):
 #         super(MqttClient, self).__init__()
@@ -72,7 +77,7 @@ from django.conf import settings
 
 
 class MqttClient():
-    def __init__(self, broker, port, timeout, topics, name):
+    def __init__(self, broker, port, timeout, topics, name, group_name_to_send_msg):
         super(MqttClient, self).__init__()
         self.client = mqtt.Client()
         self.broker = broker
@@ -81,6 +86,7 @@ class MqttClient():
         self.topics = topics
         self.name = name
         self.total_messages = 0
+        self.group_name_to_send_msg = group_name_to_send_msg
 
     def connect_to_broker(self):
         self.client.on_disconnect = self.on_disconnect
@@ -95,6 +101,7 @@ class MqttClient():
         self.total_messages = self.total_messages + 1
         #print(str(msg.payload) + "Total: {}".format(self.total_messages))
         # print("INGRESE A on_message")
+        print("INGRESO A ON MESSAGE")
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic, client {self.name}")
         
         x = msg.payload.decode("utf-8")
@@ -105,7 +112,7 @@ class MqttClient():
         #     print("value: ",value)
 
         # the result is a Python dictionary:
-        draw_point(data)
+        draw_point(data,self.group_name_to_send_msg)
 
     # The callback for when the client receives a CONNACK response from the server.
     def on_connect(self, client, userdata, flags, rc):
@@ -130,70 +137,102 @@ class MqttClient():
         time.sleep(1)
         print("In on_pub callback mid= "  ,mid)
 
-
-clients = []
 active_connections = 0
 @login_required
 def connect(request):
-    if request.method == "GET":
-
+    if request.method == "POST":
 
         no_threads=threading.active_count()
         print("Current threads =",no_threads)
-        print("Creating  Connections ",len(clients)," clients")
+        #print("Creating  Connections ",len(request.session["clients"])," clients")
 
         global active_connections
 
-        for i in range(len(clients)):
+        user_name = str(request.session['logged_user'])
+        user_name = user_name.split("@")[0]
+        group_name_to_send_msg = user_name
 
+        clients = request.session["clients"]
+        for i in range(len(clients)):  
             #create new instance
-            mqtt_client = MqttClient(clients[i]['broker'], clients[i]['port'], 60, [clients[i]['sub_topic']],clients[i]['name'])          
- 
-            clients[i]["client"]=mqtt_client
-            clients[i]["client"].client.connected_flag=False #create flag in class
 
+            print("clients[i][connected_flag] ",clients[i]["connected_flag"])
+            if clients[i]["connected_flag"]==True:
+                print("IN TRUE")
+
+            mqtt_client = MqttClient(clients[i]['broker'], clients[i]['port'], 60, [clients[i]['sub_topic']],clients[i]['name'],group_name_to_send_msg)          
+            mqtt_client.client.connected_flag=False #create flag in class     
+            clients[i]["connected_flag"]=False #create flag in class  
+   
             try:
-                clients[i]["client"].connect_to_broker()              
+                mqtt_client.connect_to_broker()                        
             except:
+                #broker = request.session["clients"][i]["broker"]
                 broker = clients[i]["broker"]
                 messages.error(request, f"Connection Fialed to broker {broker}")
                 
                 continue
-
             else:
                 broker = clients[i]["broker"]
+                #broker = request.session["clients"][i]["broker"]
                 messages.success(request, f"Conexion MQTT establecida! {broker}")     
-                clients[i]["client"].client.connected_flag=True
+                mqtt_client.client.connected_flag=True
+                clients[i]["connected_flag"]=True #create flag in class
+                #request.session.modified = True
                 active_connections += 1
+
+            finally:
+
+                #mqtt_client_json = jsonpickle.encode(mqtt_client.client)
+                #decode =jsonpickle.decode(mqtt_client_json)
+   
+                address = id(mqtt_client)
+                # display memory address
+                print("Memory address - ", address)             
+                
+                request.session["clients"][i]["address"] = address
+                request.session.modified = True
+
+                # mqtt = ctypes.cast(request.session["clients"][i]["address"], ctypes.py_object).value
+
+                # print("YOU mqtt_client------ ", mqtt)
 
         settings.ACTIVE_CONNECTIONS = active_connections
 
         no_threads=threading.active_count()
         print("current threads =",no_threads)
 
-        return render(request,"menu_connection.html", {"clients":clients})
+        return render(request,"menu_connection.html", {"clients":request.session["clients"]})
  
     else:
+        if request.session["clients"] is None:
+            request.session["clients"] = []
+
         messages.error(request, '¡No conozco ese método para esta request!')
+        return render(request,"menu_connection.html", {"clients":request.session["clients"]})
 
 def create_connections(request):
     # clients_list=[
     # {"broker":"192.168.1.159","port":1883,"name":"blank","sub_topic":"test1","pub_topic":"test1"},
     # {"broker":"192.168.1.65","port":1883,"name":"blank","sub_topic":"test2","pub_topic":"test2"}
     # ]
-    global clients
+
+    if not request.session.session_key:
+            request.session.create()
+    
+   
     if request.method == "POST":
-        clients = []
+
+        request.session["clients"] = []
+           
         clients_ids=request.POST.getlist('clients[]')
         print("clients_ids ", clients_ids)
     
-        # session = request.session.session_key
-        # if not request.session.session_key:
-        #     session = request.session.create()
+        request.session['active_clients'] = 0
+        user_name = str(request.user)
+        request.session['logged_user'] = user_name
 
-        # request.session['active_clients'] = 0
         # request.session.modified = True
-
         for i in range(len(clients_ids)):
             id = clients_ids[i]
             client = SettingMqtt.objects.get(client_id=id)
@@ -208,21 +247,24 @@ def create_connections(request):
             dictTemp['pub_topic'] = "sensores/nodo_10/public"
             dictTemp['user'] = ''
             dictTemp['password'] = ''
+            dictTemp['connected_flag'] = False        
 
-            clients.append(dictTemp)
-
-        
-        print("clients: ", clients)
-
-        return render(request,"menu_connection.html", {"clients":clients, "length": len(clients)})
+            request.session["clients"].append(dictTemp)
+  
+        return render(request,"menu_connection.html", {"clients":request.session["clients"], "length": len(request.session["clients"])})
     else:
-         return render(request,"menu_connection.html", {"clients":clients, "length": len(clients)})
+        clients = request.session.get('clients', '')
+        if clients == '':
+            request.session["clients"] = []
 
-def draw_point(data):
+        return render(request,"menu_connection.html", {"clients":request.session["clients"], "length": len(request.session["clients"])})
 
-    group_name = settings.STREAM_SOCKET_GROUP_NAME
+def draw_point(data, group_name_to_send_msg):
+
+    #group_name = settings.STREAM_SOCKET_GROUP_NAME
     channel_layer = get_channel_layer()
-   
+    group_name = group_name_to_send_msg
+
     async_to_sync(channel_layer.group_send)(
         group_name, {'type': 'system_load',  'data': data}
 
@@ -231,50 +273,71 @@ def draw_point(data):
 @login_required
 def disconnect(request):
   
-    if request.method == 'GET':
+    if request.method == 'POST':
 
         global active_connections
 
         print("active_connections ",active_connections)
- 
-        for client in clients:
-            #print("CLIENT ", client)
-            if (client["client"].client.connected_flag) == True:
-                active_connections = active_connections - 1 
 
-            client['client'].client.disconnect()
-            client['client'].client.loop_stop()
+        for client in request.session["clients"]:
+            #print("mqtt_client_decode.connected_flag ",mqtt_client_decode.connected_flag)
+
+            # get the value through memory address
+            mqtt_client = ctypes.cast(client["address"], ctypes.py_object).value
+           
+            if (mqtt_client.client.connected_flag) == True:
+                active_connections = active_connections - 1 
+        
+            mqtt_client.client.disconnect()
+            mqtt_client.client.loop_stop()
+            client["connected_flag"]=False #create flag in class
+
+            print("mqtt_client DISSCONNECT ",mqtt_client.client) 
+            # mqtt_client_json = jsonpickle.encode(mqtt_client_decode)   
+            # client["client"]=mqtt_client_json
+            # request.session.modified = True
+
             time.sleep(1)
             
         settings.ACTIVE_CONNECTIONS = active_connections
         #allow time for allthreads to stop before existing
         print("active_connections ",active_connections)
+        print("CLIENTSSSS",request.session["clients"])
         
-        for client in clients:
-            print("CLIENT ", client['client'].client.connected_flag)
+        # for client in request.session["clients"]:
+        #     print("CLIENT ", client['client'].client.connected_flag)
 
         no_threads=threading.active_count()
         print("current threads =",no_threads)
 
-        return render(request,"menu_connection.html", {"clients":clients})
+        return render(request,"menu_connection.html", {"clients":request.session["clients"]})
+
+    elif request.method == "GET":
+        messages.error(request, '¡No se puede enviar metodo GET!')
+        return render(request,"menu_connection.html", {"clients":request.session["clients"]})
+    else:
+        messages.error(request, '¡No conozco ese método para esta request!')
+        return render(request,"menu_connection.html", {"clients":request.session["clients"]})
 
 @login_required
 def publish(request):
-    print("INGRESE A PUBLISH SERVER ",request.POST)
+    #print("INGRESE A PUBLISH SERVER ",request.POST)
     if request.method == "POST":
   
         msg = request.POST.get('msg', None)
         client_id = request.POST.get('client_id', None)
-        print("CLIENT ID: ", client_id)
-        # msg = request.POST.get('my_publish_text')
-        print("msg ", msg)
+        #print("CLIENT ID: ", client_id)
+        #print("msg ", msg)
 
-        for client in clients:
+        for client in request.session["clients"]:
             if client["client_id"]==client_id:
-                pub_topic=client["pub_topic"]
+                sub_topic=client["sub_topic"]
+                print("pub_topic ",sub_topic)
 
-                if client["client"].client.connected_flag:
-                    client["client"].client.publish(pub_topic,msg)
+                mqtt_client = ctypes.cast(client["address"], ctypes.py_object).value
+ 
+                if mqtt_client.client.connected_flag:
+                    mqtt_client.client.publish(sub_topic,msg)
                     time.sleep(0.1)
                     print("publishing client "+ client["name"])
                     break
@@ -287,10 +350,8 @@ def publish(request):
                 }
             )
     elif request.method == "GET":
-        print('¡No se puede enviar metodo GET!')
         messages.error(request, '¡No se puede enviar metodo GET!')
-        return redirect('connect')
+        return render(request,"menu_connection.html", {"clients":request.session["clients"]})
     else:
         messages.error(request, '¡No conozco ese método para esta request!')
-        print('¡No conozco ese método para esta request!')
-        return redirect('connect')
+        return render(request,"menu_connection.html", {"clients":request.session["clients"]})
