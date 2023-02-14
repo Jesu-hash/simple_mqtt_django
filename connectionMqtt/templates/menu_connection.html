@@ -13,7 +13,7 @@
 {% block body %}
 
     {% if length == 0 %}
-    <h1> No hay clientes activos</h1>
+    <h1> Non active clients </h1>
     {% else %}
     <div class="row">
         <!-- CONTAINER FOR CHART -->
@@ -121,27 +121,16 @@
                     <p>BROKER: {{client.broker}}</p>
                   </div>
                     <div class="col">
-                    <p>TOPIK SUBSCIBE: {{client.sub_topic}}</p>
+                    <p>TOPIK SUBSCRIBE: {{client.sub_topic}}</p>
                   </div>
                   <div class="col">
                     <div class="alert alert-primary" role="alert">
 
-                        <script type='text/javascript'>
-
-                            if('{{ client.client}}')
-                            {
-                                var flag = JSON.parse('{{ client.client|safe }}');
-                                console.log("flag ", flag.connected_flag);
-    
-                                if(flag.connected_flag){
-                                    document.write("<p>Connected!</p>");
-                                }
-                                else{
-                                    document.write("<p>Disconnected!</p>");
-                                }
-                            }
-                            
-                        </script>
+                        {% if client.connected_flag %}
+                            <p>CONNECT</p>
+                        {% else %}
+                            <p>DISCONNECT</p>
+                        {% endif %}
 
                     </div>
                     
@@ -158,29 +147,17 @@
                         <label for="comment">Publish:</label>
                         <textarea class="form-control" rows="5" id="text_publish_{{client.client_id}}" name="my_publish_text"></textarea>
                         <div class="form-group">
-
-                            <button id="btnPublish" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
+                            
+                            {% if client.connected_flag %}
+                                <button id="btnPublish" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
                                 class="btn btn-xs btn-primary">Publish
-                            </button>
-
-                            <script type='text/javascript'>
-
-                                if('{{ client.client}}')
-                                {
-                                    var flag = JSON.parse('{{ client.client|safe }}');
-
-                                    if(flag.connected_flag){
-                                        document.getElementById("btnPublish").disabled = true;                                     
-
-                                    }
-                                    else{
-                                        document.getElementById("btnPublish").disabled = false;
-
-                                    }
-                                }
-                                
-                            </script>
-              
+                                </button>
+                            {% else %}
+                                <button id="btnPublish" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
+                                class="btn btn-xs btn-primary" disabled>Publish
+                                </button>
+                            {% endif %}
+             
                         </div>
                     <!-- </form> -->
                   </div>
@@ -191,21 +168,33 @@
         {% endfor %} 
     </form>
         
-    <form action="{% url 'disconnect' %}" method="POST">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-warning"> Disconnect all  </button>
-    </form>
-    
     <form action="{% url 'connect' %}" method="POST">
         {% csrf_token %}
-        <button type="submit" class="btn btn-success"> Connect  </button>
+
+        {% if not request.session.active_connection %}
+            <button type="submit" class="btn btn-success"> Connect all </button>
+        {% else %}
+            <button type="submit" class="btn btn-success" disabled> Connect all </button>
+        {% endif%}
     </form>
+
+    <br>
     
+    <form action="{% url 'disconnect' %}" method="POST">
+        {% csrf_token %}
+
+        {% if request.session.active_connection %}
+            <button type="submit" class="btn btn-warning"> Disconnect all  </button>
+        {% else %}
+            <button type="submit" class="btn btn-warning" disabled> Disconnect all  </button>
+        {% endif%}
+    </form>
+      
         <script src="{% static 'js/script_ajax.js' %}"></script>
     <br>
+    
         {% include 'includes/alerts.html' %}
         
-
     </div>
 
     {% endif %}

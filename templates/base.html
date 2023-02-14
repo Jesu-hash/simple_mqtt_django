@@ -75,11 +75,26 @@
                   {% endif %}
                 </ul>
               </li>
+
               <li class="nav-item">
 
-                  <a class="nav-link disabled">Clientes activos: {{ active_clients }}</a>
-     
+                <a class="nav-link disabled"><b>Global active clients:</b> {{ global_active_clients }}</a>
+ 
               </li>
+              {% if request.user.is_authenticated %}
+                <li class="nav-item">
+
+                    <a class="nav-link disabled"><b>Active clients:</b> {{ active_clients }}</a>
+      
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link disabled"><b>User name:</b> {{ active_user }}</a>
+    
+                </li>
+              {% endif %}
+            
             </ul>
             <form class="d-flex" role="search">
               <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
@@ -95,6 +110,17 @@
     </div>
     <!-- custom javascript -->
     <script src="{% static 'js/confirm_delete.js' %}" type="text/javascript"></script>
+
+    <script>
+
+      $(window).on('unload', function() {
+            var data = new FormData();        
+            data.append('csrfmiddlewaretoken', '{{csrf_token}}');
+            navigator.sendBeacon("{% url 'close_browser' %}",data);
+        });
+
+
+      </script>
 </body>
 
 <footer id="sticky-footer" class="fixed-bottom flex-shrink-0 py-4 bg-dark text-white-50">

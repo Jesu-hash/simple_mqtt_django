@@ -3,6 +3,7 @@ from email import message
 from django.shortcuts import render, redirect
 
 from accounts.models import Account
+from connectionMqtt.views import add_window
 from .models import SettingMqtt
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,7 +14,7 @@ from django.core.validators import validate_ipv46_address, RegexValidator
 
 @login_required
 def mqttSetting(request):
-
+    add_window(request)
     if request.method == "GET":
         mqtt_connection_data = SettingMqtt.objects.filter(user_id=request.user.id)
         return render(request,"management_connection.html", {"connections":mqtt_connection_data})

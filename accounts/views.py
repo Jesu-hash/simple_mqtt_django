@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect
+
+#from connectionMqtt.views import add_window
 from .forms import RegistrationForm
 from .models import Account
 from django.contrib import messages, auth
@@ -9,8 +11,16 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.core.mail import EmailMessage
+from django.conf import settings
+
+import ctypes
+import time
 
 def register(request): 
+
+    import connectionMqtt
+    connectionMqtt.views.add_window(request)
+
     form = RegistrationForm()
 
     if request.method == 'POST':
@@ -20,7 +30,7 @@ def register(request):
             last_name = form.cleaned_data['last_name']
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            # vaxidrez@gmail.com
+
             username = email.split("@")[0]
             user = Account.objects.create_user(first_name=first_name, last_name=last_name, email=email, username=username, password=password )
             #user.set_password(password)
@@ -43,8 +53,6 @@ def register(request):
 
             #return render(request, 'accounts/login.html')
 
-
-
     context = {
         'form': form
     }
@@ -65,20 +73,46 @@ def login(request):
 
         if user is not None:
             auth.login(request,user)
+
+            email = str(user)
+            username = email.split("@")[0]
+            request.session['logged_user'] = username
+
             return redirect('home')
         else:
             messages.error(request, 'Las redenciales son incorrectas')
             return redirect('login')
 
+    import connectionMqtt
+    connectionMqtt.views.add_window(request)
+
     return render(request, 'accounts/login.html')
 
 @login_required(login_url='login')
 def logout(request):
+    import connectionMqtt
+    connectionMqtt.views.add_window(request)
+    
+    active_clients = request.session.get('active_clients', 0)
+    settings.ACTIVE_CONNECTIONS -= active_clients
 
+    clients = request.session.get('clients', [])
+
+    for client in clients:
+        if (client["connected_flag"]) == True:
+            # get the value through memory address
+            mqtt_client = ctypes.cast(client["address"], ctypes.py_object).value
+            
+            mqtt_client.client.disconnect()
+            mqtt_client.client.loop_stop()
+            time.sleep(1)
+            client["connected_flag"]=False #create flag in class
+      
     auth.logout(request)
+    
     messages.success(request, 'Has salido de la sesión')
-    return redirect('login')
 
+    return redirect('login')
 
 def activate(request, uidb64, token):
     try:

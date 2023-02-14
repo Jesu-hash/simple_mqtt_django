@@ -7,6 +7,8 @@ urlpatterns = [
     #path(r'^connect/$', connect, name='connect'),  
     path('disconnect/', disconnect, name='disconnect'),
     path('publish/', publish, name='publish'),
+    path('close_browser/', close_browser, name='close_browser'),
+    
 
 
 ]

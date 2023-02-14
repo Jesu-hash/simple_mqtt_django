@@ -146,7 +146,8 @@ LOGIN_URL = 'home'
 ASGI_APPLICATION = "mqttDjango.asgi.application"
 STREAM_SOCKET_GROUP_NAME = 'system_detail' # you can define name according to your requirements
 
-#SESSION_SAVE_EVERY_REQUEST = True
+#SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 CHANNEL_LAYERS = {
@@ -166,12 +167,6 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR : 'danger'
 }
-
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = '587'
-# EMAIL_HOST_USER = 'prieto.django@gmail.com'
-# EMAIL_HOST_PASSWORD = 'maximiliano022'
-# EMAIL_USE_TLS = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
