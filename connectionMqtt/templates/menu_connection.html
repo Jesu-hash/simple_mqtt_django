@@ -144,22 +144,31 @@
                             var csrftoken = '{{ csrf_token }}'; 
                         </script>
 
-                        <label for="comment">Publish:</label>
-                        <textarea class="form-control" rows="5" id="text_publish_{{client.client_id}}" name="my_publish_text"></textarea>
+                        
+<!--Below field input fields are mandatory now-->
+
                         <div class="form-group">
-                            
+                            <label for="topic">{{client.sub_topic}}/</label>
+                            <input type="text" class="form-control" id="input_text_{{client.client_id}}" name="input_text_{{client.client_id}}">
+                        
+
+                            <label for="comment">Publish:</label>
+                            <textarea class="form-control" rows="5" id="text_publish_{{client.client_id}}" name="text_publish_{{client.client_id}}">{{client.client_id}}</textarea>
+                       
+                        
                             {% if client.connected_flag %}
-                                <button id="btnPublish" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
+                                <button id="button_publish_{{client.client_id}}" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" name="name_publish_{{client.client_id}}" type="submit"
                                 class="btn btn-xs btn-primary">Publish
                                 </button>
                             {% else %}
-                                <button id="btnPublish" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" type="button"
+                                <button id="button_publish_{{client.client_id}}" onclick="publish('{{client.client_id}}')" id="{{client.client_id}}" name="name_publish_{{client.client_id}}" type="submit"
                                 class="btn btn-xs btn-primary" disabled>Publish
                                 </button>
                             {% endif %}
              
                         </div>
                     <!-- </form> -->
+
                   </div>
 
                 </div>

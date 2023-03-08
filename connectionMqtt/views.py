@@ -10,7 +10,10 @@ from settingMqtt.models import SettingMqtt
 import json
 from django.conf import settings
 import threading
+
 import paho.mqtt.client as mqtt
+from paho.mqtt.subscribeoptions import SubscribeOptions
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.shortcuts import render, redirect
@@ -25,7 +28,11 @@ from django.views.decorators.csrf import csrf_exempt
 class MqttClient():
     def __init__(self, broker, port, timeout, topics, name, group_name_to_send_msg):
         super(MqttClient, self).__init__()
+        #mytransport = 'websockets' # or 'tcp'
         self.client = mqtt.Client()
+        #self.client = mqtt.Client(protocol=mqtt.MQTTv311, clean_session=True)
+        #self.client = mqtt.Client(client_id="myPy",transport=mytransport,protocol=mqtt.MQTTv5)
+        #self.client = mqtt.Client(protocol=mqtt.MQTTv5)
         self.broker = broker
         self.port = port
         self.timeout = timeout
@@ -71,8 +78,11 @@ class MqttClient():
              print("Failed to connect, return code %d\n", rc)
 
         #  Subscribe to a list of topics using a lock to guarantee that a topic is only subscribed once
+        options = SubscribeOptions(qos=1, noLocal=True) #noLocal only working with MQTTv5
+        
         for topic in self.topics:
-            client.subscribe(topic)
+            #client.subscribe(topic)
+            client.subscribe(topic, options=options)
 
     def on_disconnect(self, client, userdata, rc):
         if rc == 0:
@@ -268,8 +278,10 @@ def publish(request):
         
         for client in request.session["clients"]:
             if client["client_id"]==client_id:
-                sub_topic=client["sub_topic"]
-                print("pub_topic ",sub_topic)
+                #sub_topic=client["sub_topic"]
+                sub_topic=client["pub_topic"]       
+                print("pub_topic ",client['pub_topic'])
+                #print("pub_topic ",sub_topic)
  
                 #if mqtt_client.client.connected_flag:
                 if (client["connected_flag"]) == True:
